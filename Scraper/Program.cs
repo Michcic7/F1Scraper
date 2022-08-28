@@ -1,44 +1,38 @@
 ﻿using HtmlAgilityPack;
 using Newtonsoft.Json;
-using Scraper.Services;
+using System;
 
-DriverService _service = new DriverService();
+Console.Write("Enter a year: ");
+string year = Console.ReadLine();
+Console.WriteLine();
 
-var infos = _service.GetDriverInfo("https://en.wikipedia.org/wiki/Mick_Schumacher");
+var web = new HtmlWeb();
+var doc = web.Load($"https://www.formula1.com/en/results.html/{year}/drivers.html");
 
-Console.WriteLine(infos);
+var rows = doc.DocumentNode.SelectNodes(
+    "//table[@class='resultsarchive-table']/tbody/tr");
 
+foreach (var item in rows)
+{
+    var pos = item.SelectSingleNode(
+        "./td[@class='dark']");
+    var driverF = item.SelectSingleNode(
+        "./td/a/span[@class='hide-for-tablet']");
+    var driverL = item.SelectSingleNode(
+        "./td/a/span[@class='hide-for-mobile']");
+    var nationality = item.SelectSingleNode(
+        "./td[@class='dark semi-bold uppercase']");
+    var team = item.SelectSingleNode(
+        "./td/a[@class='grey semi-bold uppercase ArchiveLink']");
+    var points = item.SelectSingleNode(
+        "./td[@class='dark bold']");
 
-//var url = "https://en.wikipedia.org/wiki/Fernando_Alonso";
-//var web = new HtmlWeb();
-//var doc = web.Load(url);
+    Console.WriteLine(pos.InnerText + ".");
+    Console.WriteLine(driverF.InnerText + " " + driverL.InnerText);
+    Console.WriteLine(nationality.InnerText);
+    Console.WriteLine(team.InnerText);
+    Console.WriteLine(points.InnerText + " points");
+    Console.WriteLine();
 
-//var rows = doc.DocumentNode.SelectNodes(
-//    "//table[@class='infobox biography vcard']//tr");
-
-//var thInfo = doc.DocumentNode.SelectSingleNode(
-//    "//table[@class='infobox biography vcard']//tr//th[@class='infobox-header']");
-
-//foreach (var item in rows)
-//{
-//    var th = item.SelectSingleNode(".//th");
-//    var td = item.SelectSingleNode(".//td");
-
-//    if (th != null && th.HasClass("infobox-header"))
-//    {
-//        if (th.InnerText != "Formula One World Championship career")
-//            break;
-//    }
-
-//    if (th != null && td != null)
-//    {
-//        Console.Write(th.InnerText + " : ");
-//        Console.WriteLine(td.InnerText);
-//    }
-//    else if (th != null && td == null)
-//    {
-//        Console.WriteLine("---");
-//        Console.WriteLine(th.InnerText);
-//        Console.WriteLine("---");        
-//    }
-//}
+    //Console.WriteLine(JsonConvert.SerializeObject(_model, Formatting.Indented));
+}
