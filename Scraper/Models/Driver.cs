@@ -8,5 +8,5 @@ public class Driver
     public string Nationality { get; set; }
 
     //public int TeamId { get; set; }
-    public List<Team> Team { get; set; }
+    public List<Team> Teams { get; set; }
 }

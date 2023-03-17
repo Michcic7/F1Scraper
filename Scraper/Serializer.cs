@@ -6,20 +6,20 @@ namespace ScraperApp;
 
 internal static class Serializer
 {
-    public static void SerializeDriverModel()
+    public static void SerializeDriverModel(List<Team> teams)
     {
         List<Driver> drivers = new();
         List<Driver> driversToAdd = new();
         DriverScraper scrapper = new();
 
-        //for (int year = 1950; year <= 2022; year++)
-        //{
-        //    driversToAdd = scrapper.ScrapeDrivers(year);
+        for (int year = 1950; year <= 2022; year++)
+        {
+            driversToAdd = scrapper.ScrapeDrivers(year, teams);
 
-        //    drivers.AddRange(driversToAdd);
-        //}
+            drivers.AddRange(driversToAdd);
+        }
 
-        var distinctDrivers = drivers.DistinctBy(d => d.FirstName + " " + d.LastName);
+        IEnumerable<Driver> distinctDrivers = drivers.DistinctBy(d => d.FirstName + " " + d.LastName);
 
         var json = JsonConvert.SerializeObject(distinctDrivers, Formatting.Indented);
 
