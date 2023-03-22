@@ -6,7 +6,4 @@ public class Driver
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string Nationality { get; set; }
-
-    //public int TeamId { get; set; }
-    public List<Team> Teams { get; set; }
 }

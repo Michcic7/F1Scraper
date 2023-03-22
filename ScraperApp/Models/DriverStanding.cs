@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace ScraperApp.Models;
 
-internal class DriverDto
+internal class DriverStanding
 {
     public int Id { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string Nationality { get; set; }
+    public int Position { get; set; }
+    public int DriverId { get; set; }
+    public Driver Driver { get; set; }
     public int TeamId { get; set; }
     public Team Team { get; set; }
+    public int Points { get; set; }
 }
