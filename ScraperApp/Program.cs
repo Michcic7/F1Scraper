@@ -16,6 +16,11 @@ internal class Program
     {
         Serializer serializer = new();
 
-        serializer.SerializeDrivers();
+        //serializer.SerializeDrivers();
+        //serializer.SerializeTeams();
+        //serializer.SerializeCircuits();
+        //serializer.SerializeTeamStandings();
+        //serializer.SerializeDriverStandings();
+        serializer.SerializeRaceResults();
     }
 }

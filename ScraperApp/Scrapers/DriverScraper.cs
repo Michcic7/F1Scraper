@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace ScraperApp.Scrapers;
 
 internal class DriverScraper
-{    
+{
     private int _index = 1;
 
     internal List<Driver> ScrapeDrivers()
@@ -52,7 +52,7 @@ internal class DriverScraper
                 {
                     continue;
                 }
-                
+
                 scrapedNationality = row.SelectSingleNode(
                     "./td[@class='dark semi-bold uppercase']").InnerText;
 

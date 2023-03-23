@@ -26,9 +26,9 @@ internal class Serializer
 
     internal void SerializeCircuits()
     {
-        CircuitScraper scraper = new();
-
         List<string> links = GetLinks();
+
+        CircuitScraper scraper = new();
 
         List<Circuit> circuits = scraper.ScrapeCircuits(links);
 
@@ -39,9 +39,9 @@ internal class Serializer
 
     internal void SerializeTeams()
     {
-        TeamScraper scraper = new();
-
         List<string> links = GetLinks();
+        
+        TeamScraper scraper = new();
 
         List<Team> teams = scraper.ScrapeTeams(links);
 
@@ -60,6 +60,43 @@ internal class Serializer
         string json = JsonConvert.SerializeObject(drivers, Formatting.Indented);
 
         File.WriteAllText(@"D:\C#\Formula1Project\Scraper\ScraperApp\Json\drivers.json", json);
+    }
+
+    internal void SerializeTeamStandings()
+    {
+        TeamStandingScraper scraper = new();
+
+        List<TeamStanding> teamStandings = scraper.ScrapeTeamStandings();
+
+        string json = JsonConvert.SerializeObject(teamStandings, Formatting.Indented);
+
+        File.WriteAllText(
+            @"D:\C#\Formula1Project\Scraper\ScraperApp\Json\teamStandings.json", json);
+    }
+
+    internal void SerializeDriverStandings()
+    {
+        DriverStandingScraper scraper = new();
+
+        List<DriverStanding> driverStandings = scraper.ScrapeDriverStandings();
+
+        string json = JsonConvert.SerializeObject(driverStandings, Formatting.Indented);
+
+        File.WriteAllText(
+            @"D:\C#\Formula1Project\Scraper\ScraperApp\Json\driverStandings.json", json);
+    }
+
+    internal void SerializeRaceResults()
+    {
+        List<string> links = GetLinks();
+
+        RaceResultScraper scraper = new();
+
+        List<RaceResult> raceResults = scraper.ScrapeRaceResults(links);
+
+        string json = JsonConvert.SerializeObject(raceResults, Formatting.Indented);
+
+        File.WriteAllText(@"D:\C#\Formula1Project\Scraper\ScraperApp\Json\raceResults.json", json);
     }
 
     private List<string> GetLinks()

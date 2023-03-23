@@ -1,4 +1,6 @@
 ﻿using HtmlAgilityPack;
+using Newtonsoft.Json;
+using ScraperApp.Json;
 using ScraperApp.Models;
 using System;
 using System.Collections.Generic;
@@ -13,61 +15,81 @@ internal class TeamStandingScraper
 {
     private int _index = 1;
 
-    public List<TeamStanding> ScrapeTeamStandings(int year, List<Team> teams)
+    internal List<TeamStanding> ScrapeTeamStandings()
     {
+        List<Team> teams = JsonDeserializer.Deserialize<Team>("teams");
+        
         HtmlWeb web = new();
         web.OverrideEncoding = Encoding.UTF8;
-
-        HtmlDocument document = web.Load(
-            $"https://www.formula1.com/en/results.html/{year}/team.html");
+        HtmlDocument document = new();
 
         List<TeamStanding> teamStandings = new();
 
-        foreach (var row in document.DocumentNode.SelectNodes(
-            "//table[@class='resultsarchive-table']/tbody/tr"))
+        string scrapedPositionString = string.Empty;
+        int scrapedPosition = 0;
+        string scrapedTeamName = string.Empty;
+        string scrapedPointsString = string.Empty;
+        float scrapedPoints = 0;
+
+        for (int year = 1958; year < 2023; year++)
         {
-            TeamStanding teamStandingToAdd = new();
+            document = web.Load(
+                $"https://www.formula1.com/en/results.html/{year}/team.html");
 
-            string scrapedPoints = row.SelectSingleNode(
-                "./td[@class='dark bold']").InnerText;
-
-            string teamName = row.SelectSingleNode(
-                "./td[@class='semi-bold uppercase']").InnerText;
-
-            teamStandingToAdd.Id = _index++;
-
-            if (int.TryParse(scrapedPoints, out int points))
+            foreach (var row in document.DocumentNode.SelectNodes(
+                "//table[@class='resultsarchive-table']/tbody/tr"))
             {
-                teamStandingToAdd.Points = points;
+                scrapedTeamName = row.SelectSingleNode(
+                    "./td/a[@class='dark bold uppercase ArchiveLink']")?.InnerText ?? string.Empty;
+
+                if (string.IsNullOrEmpty(scrapedTeamName))
+                {
+                    break;
+                }
+
+                Team existingTeam = teams.FirstOrDefault(t => t.Name == scrapedTeamName);
+
+                if (existingTeam == null)
+                {
+                    Console.WriteLine($"Year: {year} {scrapedTeamName} is missing in teams.json");
+                    break;
+                }
+
+                scrapedPositionString = row.SelectSingleNode(
+                    "./td[@class='dark']").InnerText;
+
+                if (int.TryParse(scrapedPositionString, out int position))
+                {
+                    scrapedPosition = position;
+                }
+                else
+                {
+                    scrapedPosition = 0;
+                }
+
+                scrapedPointsString = row.SelectSingleNode(
+                    "./td[@class='dark bold']").InnerText;
+
+                if (float.TryParse(scrapedPointsString, out float points))
+                {
+                    scrapedPoints = points;
+                }
+                else
+                {
+                    scrapedPoints = 0;
+                }
+
+                teamStandings.Add(new TeamStanding
+                {
+                    Id = _index++,
+                    Position = scrapedPosition,
+                    Team = existingTeam,
+                    Points = scrapedPoints,
+                    Year = year
+                });
             }
-            else
-            {
-                teamStandingToAdd.Points = 0;
-            }
-
-            teamStandingToAdd.Team = teams.FirstOrDefault(t => t.Name == teamName);
-
-            teamStandingToAdd.Year = year;
-
-            teamStandings.Add(teamStandingToAdd);
-        }
-
+        }    
+        
         return teamStandings;
     }
 }
-
-//     var position = item.SelectSingleNode(
-//                "./td[@class='dark']").InnerText;
-//                var name = item.SelectSingleNode(
-//                    "./td/a[@class='dark bold uppercase ArchiveLink']").InnerText;
-//                var points = item.SelectSingleNode(
-//                    "./td[@class='dark bold']").InnerText;
-
-//                team.TeamId = index++;
-//                team.StandingsYearId = year;
-//                team.Position = position;
-//                team.Name = name;
-//                if (points == "null")
-//                    points = "0";
-//                team.Points = float.Parse(points);
-

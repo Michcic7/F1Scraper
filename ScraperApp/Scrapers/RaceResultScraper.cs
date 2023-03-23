@@ -1,184 +1,222 @@
 ﻿using HtmlAgilityPack;
+using ScraperApp.Json;
 using ScraperApp.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.Contracts;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace ScraperApp.Scrapers;
 
 internal class RaceResultScraper
 {
     private int _index = 1;
-    //private int _year = 1950;
-    
-    public List<RaceResult> ScrapeIndividualRaceResults(
-        string url)
+
+    public List<RaceResult> ScrapeRaceResults(List<string> links)
     {
+        List<Driver> drivers = JsonDeserializer.Deserialize<Driver>("drivers");
+        List<Team> teams = JsonDeserializer.Deserialize<Team>("teams");
+        List<Circuit> circuits = JsonDeserializer.Deserialize<Circuit>("circuits");
+
         HtmlWeb web = new();
         web.OverrideEncoding = Encoding.UTF8;
-        HtmlDocument document = web.Load($"https://www.formula1.com{url}");
-
-        string yearString = url[17..21];
+        HtmlDocument document = new();
+        HtmlDocument documentForDate = new();
 
         List<RaceResult> raceResults = new();
 
-        foreach (var row in document.DocumentNode.SelectNodes(
-            "//table[@class='resultsarchive-table']/tbody/tr"))
+        // loop variables
+        string yearString = string.Empty;
+        int scrapedYear = 0;
+        string scrapedCircuitFullName = string.Empty;
+        string[] scrapedParts = new string[2];
+        string scrapedCircuitName = string.Empty;
+        string scrapedPositionString = string.Empty;
+        int scrapedPosition = 0;
+        string scrapedPointsString = string.Empty;
+        float scrapedPoints = 0;
+        string scrapedDateString = string.Empty;
+        DateOnly scrapedDate;
+        string scrapedDriverFirstName = string.Empty;
+        string scrapedDriverLastName = string.Empty;
+        string scrapedDriverFullName = string.Empty;
+        string scrapedTeamName = string.Empty;
+        string scrapedLapsString = string.Empty;
+        int scrapedLaps = 0;
+        string scrapedTime = string.Empty;
+        bool addedNewDriver = false;
+        List<Driver> driversNotPresentInJson = new();
+        int newDriverId = 500;
+        int newDriverIndexInList = 0;
+        
+        foreach (var link in links)
         {
-            RaceResult raceResult = new RaceResult();
+            //scrapedCircuitFullName = document.DocumentNode.SelectSingleNode(
+            //    "/html/body/div[1]/main/article/div/div[2]/div[2]/div[1]/p" +
+            //    "/span[@class='circuit-info']").InnerText;
 
-            string positionString = row.SelectSingleNode(
-                "./td[@class='dark']").InnerText;
-            //string name = row.SelectSingleNode(
-            //    "./td/a[@class='dark bold ArchiveLink']").InnerText.Trim();
-            //string dateString = row.SelectSingleNode(
-            //    "./td[@class='dark hide-for-mobile']").InnerText;
-            string winnerFirstName = row.SelectSingleNode(
-                "./td[@class='dark bold']/span[@class='hide-for-tablet']").InnerText;
-            string winnerLastName = row.SelectSingleNode(
-                "./td[@class='dark bold']/span[@class='hide-for-mobile']").InnerText;
+            document = web.Load("https://www.formula1.com" + link);
 
-            // nulluje!
-            string lapsString = row.SelectSingleNode(
-                "./td[@class='bold hide-for-mobile']").InnerText ?? "0";
-            //string timeString = row.SelectSingleNode(
-            //    "./td[@class='dark bold hide-for-tablet']").InnerText;
+            scrapedCircuitFullName = document.DocumentNode.SelectSingleNode(
+                "/html/body/div[1]/main/article/div/div[2]/div[2]/div[1]/p" +
+                "/span[@class='circuit-info']").InnerText;
 
-            raceResult.Id = _index++;
+            // get the circuit name of a race
+            scrapedParts = scrapedCircuitFullName.Split(',');
+            scrapedCircuitName = scrapedParts[0].Trim();
 
+            Circuit existingCircuit = circuits.FirstOrDefault(c =>
+                c.Name == scrapedCircuitName);
+
+            if (existingCircuit == null)
+            {
+                Console.WriteLine($"Circuit: {scrapedCircuitName} not found in circuits.json");
+            }
+
+            yearString = link[17..21];
 
             if (int.TryParse(yearString, out int year))
             {
-                raceResult.Year = year;
+                scrapedYear = year;
             }
             else
             {
-                raceResult.Year = 0;
+                Console.WriteLine($"Year: {yearString} is invalid");
             }
 
-            if (int.TryParse(positionString, out int position))
+            foreach (var row in document.DocumentNode.SelectNodes(
+                "//table[@class='resultsarchive-table']/tbody/tr"))
             {
-                raceResult.Position = position;
-            }
-            else
-            {
-                raceResult.Position = 0;
-            }
+                scrapedPositionString = row.SelectSingleNode(
+                    "./td[@class='dark']").InnerText;
 
-            //raceResult.Circuit = circuits.FirstOrDefault(c => c.Name == name);
-
-            //if (DateOnly.TryParse(dateString, out DateOnly date))
-            //{
-            //    raceResult.Date = date;
-            //}
-
-            //raceResult.Driver = drivers.FirstOrDefault(d =>
-            //    d.FirstName == winnerFirstName && d.LastName == winnerLastName);
-
-            if (lapsString!= null)
-            {
-                if (int.TryParse(lapsString, out int laps))
+                if (int.TryParse(scrapedPositionString, out int position))
                 {
-                    raceResult.Laps = laps;
+                    scrapedPosition = position;
                 }
                 else
                 {
-                    raceResult.Laps = 0;
+                    scrapedPosition = 0;
+                }
+
+                scrapedPointsString = row.SelectSingleNode(
+                        "./td[@class='dark bold']").InnerText;
+
+                if (float.TryParse(scrapedPointsString, out float points))
+                {
+                    scrapedPoints = points;
+                }
+                else
+                {
+                    scrapedPoints = 0;
+                }
+
+                documentForDate = web.Load(
+                    $"https://www.formula1.com/en/results.html/{scrapedYear}/races.html");
+
+                scrapedDateString = documentForDate.DocumentNode.SelectSingleNode(
+                    "/html/body/div[1]/main/article/div/div[2]/div[2]/div/div[2]" +
+                    "/table/tbody/tr[1]/td[3]").InnerText;
+
+                scrapedDate = DateOnly.ParseExact(
+                    scrapedDateString, "dd MMM yyyy", CultureInfo.InvariantCulture);
+
+                scrapedDriverFirstName = row.SelectSingleNode(
+                        "./td/span[@class='hide-for-tablet']").InnerText;
+                scrapedDriverLastName = row.SelectSingleNode(
+                    "./td/span[@class='hide-for-mobile']").InnerText;
+
+                scrapedDriverFullName = scrapedDriverFirstName + " " + scrapedDriverLastName;
+
+                Driver existingDriver = drivers.FirstOrDefault(d =>
+                    d.FirstName + " " + d.LastName == scrapedDriverFullName);
+
+                if (existingDriver == null)
+                {
+                    Console.WriteLine($"Driver: {scrapedDriverFullName} doesn't exist");
+
+                    driversNotPresentInJson.Add(new Driver()
+                    {
+                        Id = newDriverId++,
+                        FirstName = scrapedDriverFirstName,
+                        LastName = scrapedDriverLastName
+                    });
+
+                    drivers.Add(driversNotPresentInJson.Last());
+
+                    addedNewDriver = true;
+                }
+
+                scrapedTeamName = row.SelectSingleNode(
+                    "./td[@class='semi-bold uppercase hide-for-tablet']").InnerText;
+
+                Team existingTeam = teams.FirstOrDefault(t => t.Name == scrapedTeamName);
+
+                if (existingTeam == null)
+                {
+                    Console.WriteLine(
+                        $"Year: {scrapedYear} {scrapedTeamName} is missing in teams.json");
+                }
+
+                scrapedLapsString = row.SelectSingleNode(
+                    "./td[@class='bold hide-for-mobile']").InnerText;
+
+                if (int.TryParse(scrapedLapsString, out int laps))
+                {
+                    scrapedLaps = laps;
+                }
+                else
+                {
+                    scrapedLaps = 0;
+                }
+
+                HtmlNodeCollection twoSameNodes = row.SelectNodes("./td[@class='dark bold']");
+
+                scrapedTime = twoSameNodes[1].InnerText;
+
+                if (addedNewDriver)
+                {
+                    raceResults.Add(new RaceResult
+                    {
+                        Id = _index++,
+                        Year = scrapedYear,
+                        Position = scrapedPosition,
+                        Circuit = existingCircuit,
+                        Date = scrapedDate,
+                        Driver = driversNotPresentInJson[newDriverIndexInList],
+                        Team = existingTeam,
+                        Laps = scrapedLaps,
+                        Time = scrapedTime,
+                        Points = scrapedPoints,
+                    });
+
+                    newDriverIndexInList++;
+                    addedNewDriver = false;
+                }
+                else
+                {
+                    raceResults.Add(new RaceResult
+                    {
+                        Id = _index++,
+                        Year = scrapedYear,
+                        Position = scrapedPosition,
+                        Circuit = existingCircuit,
+                        Date = scrapedDate,
+                        Driver = existingDriver,
+                        Team = existingTeam,
+                        Laps = scrapedLaps,
+                        Time = scrapedTime,
+                        Points = scrapedPoints,
+                    });
                 }
             }
-            else
-            {
-                raceResult.Laps = 0;
-            }
-
-            //raceResult.Time = timeString;
-
-            //if (TimeSpan.TryParse(timeString, out TimeSpan time))
-            //{
-            //    raceResult.Time = time;
-            //}
-
-            raceResults.Add(raceResult);
         }
 
         return raceResults;
     }
-
-
-
-    //public List<RaceResult> ScrapeRaceResults(
-    //    int year, List<Driver> drivers, List<Team> teams, List<Circuit> circuits)
-    //{
-    //    HtmlWeb web = new();
-    //    web.OverrideEncoding = Encoding.UTF8;
-    //    HtmlDocument document = web.Load($"https://www.formula1.com/en/results.html/{year}/races.html");
-
-    //    List<RaceResult> raceResults = new();
-
-    //    foreach (var row in document.DocumentNode.SelectNodes(
-    //        "//table[@class='resultsarchive-table']/tbody/tr"))
-    //    {
-    //        RaceResult raceResult = new RaceResult();
-
-    //        string positionString = row.SelectSingleNode(
-    //            "./td[@class='dark']").InnerText;
-    //        string name = row.SelectSingleNode(
-    //            "./td/a[@class='dark bold ArchiveLink']").InnerText.Trim();
-    //        string dateString = row.SelectSingleNode(
-    //            "./td[@class='dark hide-for-mobile']").InnerText;
-    //        string winnerFirstName = row.SelectSingleNode(
-    //            "./td[@class='dark bold']/span[@class='hide-for-tablet']").InnerText;
-    //        string winnerLastName = row.SelectSingleNode(
-    //            "./td[@class='dark bold']/span[@class='hide-for-mobile']").InnerText;
-    //        string lapsString = row.SelectSingleNode(
-    //            "./td[@class='bold hide-for-mobile']").InnerText;
-    //        string timeString = row.SelectSingleNode(
-    //            "./td[@class='dark bold hide-for-tablet']").InnerText;
-
-    //        raceResult.Id = _index++;
-
-    //        raceResult.Year = year;
-
-    //        if (int.TryParse(positionString, out int position))
-    //        {
-    //            raceResult.Position = position;
-    //        }
-    //        else
-    //        {
-    //            raceResult.Position = 0;
-    //        }
-
-    //        raceResult.Circuit = circuits.FirstOrDefault(c => c.Name == name);
-
-    //        if (DateOnly.TryParse(dateString, out DateOnly date))
-    //        {
-    //            raceResult.Date = date;
-    //        }
-                        
-    //        raceResult.Driver = drivers.FirstOrDefault(d => 
-    //            d.FirstName == winnerFirstName && d.LastName == winnerLastName);
-
-    //        if (int.TryParse(lapsString, out int laps))
-    //        {
-    //            raceResult.Laps = laps;
-    //        }
-    //        else
-    //        {
-    //            raceResult.Laps = 0;
-    //        }
-            
-    //        if (TimeSpan.TryParse(timeString, out TimeSpan time))
-    //        {
-    //            raceResult.Time = time;
-    //        }
-
-    //        raceResults.Add(raceResult);
-    //    }
-
-    //    return raceResults;
-    //}
 }

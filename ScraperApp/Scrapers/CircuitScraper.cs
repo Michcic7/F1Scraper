@@ -34,10 +34,10 @@ internal class CircuitScraper
 
             scrapedFullName = document.DocumentNode.SelectSingleNode(
                 "/html/body/div[1]/main/article/div/div[2]/div[2]/div[1]/p" +
-            "/span[@class='circuit-info']").InnerText;
+                "/span[@class='circuit-info']").InnerText;
 
             // if there's no name on the page - a race from the link hasn't taken place yet
-            if (string.IsNullOrEmpty(scrapedName))
+            if (string.IsNullOrEmpty(scrapedFullName))
             {
                 break;
             }
