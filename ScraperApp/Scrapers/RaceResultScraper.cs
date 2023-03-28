@@ -41,7 +41,7 @@ internal class RaceResultScraper
         string scrapedPointsString = string.Empty;
         float scrapedPoints = 0;
         string scrapedDateString = string.Empty;
-        DateOnly scrapedDate;
+        DateOnly scrapedDate = DateOnly.MinValue;
         string scrapedDriverFirstName = string.Empty;
         string scrapedDriverLastName = string.Empty;
         string scrapedDriverFullName = string.Empty;
@@ -53,7 +53,7 @@ internal class RaceResultScraper
         List<Driver> driversNotPresentInJson = new();
         int newDriverId = 500;
         int newDriverIndexInList = 0;
-        
+
         foreach (var link in links)
         {
             //scrapedCircuitFullName = document.DocumentNode.SelectSingleNode(
@@ -89,9 +89,25 @@ internal class RaceResultScraper
                 Console.WriteLine($"Year: {yearString} is invalid");
             }
 
+            scrapedDateString = document.DocumentNode.SelectSingleNode(
+                    "//div[@class='resultsarchive-content-header group']" +
+                    "/p[@class='date']/span[@class='full-date']").InnerText;
+
+            if (DateOnly.TryParseExact(scrapedDateString, "dd MMM yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date))
+            {
+                scrapedDate = date;
+            }
+            else
+            {
+                Console.WriteLine($"Something's wrong: {link} \n" +
+                    $"Date: {scrapedDateString}");
+            }
+
             foreach (var row in document.DocumentNode.SelectNodes(
                 "//table[@class='resultsarchive-table']/tbody/tr"))
             {
+
+
                 scrapedPositionString = row.SelectSingleNode(
                     "./td[@class='dark']").InnerText;
 
@@ -115,16 +131,6 @@ internal class RaceResultScraper
                 {
                     scrapedPoints = 0;
                 }
-
-                documentForDate = web.Load(
-                    $"https://www.formula1.com/en/results.html/{scrapedYear}/races.html");
-
-                scrapedDateString = documentForDate.DocumentNode.SelectSingleNode(
-                    "/html/body/div[1]/main/article/div/div[2]/div[2]/div/div[2]" +
-                    "/table/tbody/tr[1]/td[3]").InnerText;
-
-                scrapedDate = DateOnly.ParseExact(
-                    scrapedDateString, "dd MMM yyyy", CultureInfo.InvariantCulture);
 
                 scrapedDriverFirstName = row.SelectSingleNode(
                         "./td/span[@class='hide-for-tablet']").InnerText;
