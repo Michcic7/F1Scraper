@@ -17,7 +17,7 @@ internal class RaceResultScraper
 {
     private int _index = 1;
 
-    public List<RaceResult> ScrapeRaceResults(List<string> links)
+    internal List<RaceResult> ScrapeRaceResults(List<string> links)
     {
         List<Driver> drivers = JsonDeserializer.Deserialize<Driver>("drivers");
         List<Team> teams = JsonDeserializer.Deserialize<Team>("teams");
@@ -53,20 +53,16 @@ internal class RaceResultScraper
         List<Driver> driversNotPresentInJson = new();
         int newDriverId = 500;
         int newDriverIndexInList = 0;
+        HtmlNodeCollection twoSameNodes;
 
         foreach (var link in links)
         {
-            //scrapedCircuitFullName = document.DocumentNode.SelectSingleNode(
-            //    "/html/body/div[1]/main/article/div/div[2]/div[2]/div[1]/p" +
-            //    "/span[@class='circuit-info']").InnerText;
-
             document = web.Load("https://www.formula1.com" + link);
 
             scrapedCircuitFullName = document.DocumentNode.SelectSingleNode(
                 "/html/body/div[1]/main/article/div/div[2]/div[2]/div[1]/p" +
                 "/span[@class='circuit-info']").InnerText;
 
-            // get the circuit name of a race
             scrapedParts = scrapedCircuitFullName.Split(',');
             scrapedCircuitName = scrapedParts[0].Trim();
 
@@ -106,8 +102,6 @@ internal class RaceResultScraper
             foreach (var row in document.DocumentNode.SelectNodes(
                 "//table[@class='resultsarchive-table']/tbody/tr"))
             {
-
-
                 scrapedPositionString = row.SelectSingleNode(
                     "./td[@class='dark']").InnerText;
 
@@ -121,7 +115,7 @@ internal class RaceResultScraper
                 }
 
                 scrapedPointsString = row.SelectSingleNode(
-                        "./td[@class='dark bold']").InnerText;
+                        "./td[@class='bold']").InnerText;
 
                 if (float.TryParse(scrapedPointsString, out float points))
                 {
@@ -133,9 +127,9 @@ internal class RaceResultScraper
                 }
 
                 scrapedDriverFirstName = row.SelectSingleNode(
-                        "./td/span[@class='hide-for-tablet']").InnerText;
+                        "./td/span[@class='hide-for-tablet']").InnerText.Trim();
                 scrapedDriverLastName = row.SelectSingleNode(
-                    "./td/span[@class='hide-for-mobile']").InnerText;
+                    "./td/span[@class='hide-for-mobile']").InnerText.Trim();
 
                 scrapedDriverFullName = scrapedDriverFirstName + " " + scrapedDriverLastName;
 
@@ -148,7 +142,7 @@ internal class RaceResultScraper
 
                     driversNotPresentInJson.Add(new Driver()
                     {
-                        Id = newDriverId++,
+                        DriverId = newDriverId++,
                         FirstName = scrapedDriverFirstName,
                         LastName = scrapedDriverLastName
                     });
@@ -159,7 +153,7 @@ internal class RaceResultScraper
                 }
 
                 scrapedTeamName = row.SelectSingleNode(
-                    "./td[@class='semi-bold uppercase hide-for-tablet']").InnerText;
+                    "./td[@class='semi-bold uppercase hide-for-tablet']").InnerText.Trim();
 
                 Team existingTeam = teams.FirstOrDefault(t => t.Name == scrapedTeamName);
 
@@ -181,7 +175,7 @@ internal class RaceResultScraper
                     scrapedLaps = 0;
                 }
 
-                HtmlNodeCollection twoSameNodes = row.SelectNodes("./td[@class='dark bold']");
+                twoSameNodes = row.SelectNodes("./td[@class='dark bold']");
 
                 scrapedTime = twoSameNodes[1].InnerText;
 
@@ -189,7 +183,7 @@ internal class RaceResultScraper
                 {
                     raceResults.Add(new RaceResult
                     {
-                        Id = _index++,
+                        RaceResultId = _index++,
                         Year = scrapedYear,
                         Position = scrapedPosition,
                         Circuit = existingCircuit,
@@ -208,7 +202,7 @@ internal class RaceResultScraper
                 {
                     raceResults.Add(new RaceResult
                     {
-                        Id = _index++,
+                        RaceResultId = _index++,
                         Year = scrapedYear,
                         Position = scrapedPosition,
                         Circuit = existingCircuit,

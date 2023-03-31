@@ -56,7 +56,7 @@ internal class CircuitScraper
             // add a circuit to the returned list of circuits
             circuits.Add(new Circuit
             {
-                Id = _index++,
+                CircuitId = _index++,
                 Name = scrapedName,
                 Country = scrapedCountry
             });

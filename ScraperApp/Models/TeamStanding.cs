@@ -8,7 +8,7 @@ namespace ScraperApp.Models;
 
 internal class TeamStanding
 {
-    public int Id { get; set; }
+    public int TeamStandingId { get; set; }
     public int Position { get; set; }
     public Team Team { get; set; }
     public float Points { get; set; }

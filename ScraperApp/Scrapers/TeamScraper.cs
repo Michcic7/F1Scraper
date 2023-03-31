@@ -33,7 +33,7 @@ internal class TeamScraper
                 // using null-conditional operator to check the node,
                 // then null coalescing operator to check the inner text of the node
                 scrapedName = row.SelectSingleNode(
-                    "./td[@class='semi-bold uppercase hide-for-tablet']")?.InnerText ?? string.Empty;
+                    "./td[@class='semi-bold uppercase hide-for-tablet']")?.InnerText.Trim() ?? string.Empty;
 
                 // if there's no name on the page - a race from the link hasn't taken place yet
                 if (string.IsNullOrEmpty(scrapedName))
@@ -50,7 +50,7 @@ internal class TeamScraper
                 // add a team to the returned list of teams
                 teams.Add(new Team
                 {
-                    Id = _index++,
+                    TeamId = _index++,
                     Name = scrapedName
                 });
             }

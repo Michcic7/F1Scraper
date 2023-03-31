@@ -40,7 +40,7 @@ internal class TeamStandingScraper
                 "//table[@class='resultsarchive-table']/tbody/tr"))
             {
                 scrapedTeamName = row.SelectSingleNode(
-                    "./td/a[@class='dark bold uppercase ArchiveLink']")?.InnerText ?? string.Empty;
+                    "./td/a[@class='dark bold uppercase ArchiveLink']")?.InnerText.Trim() ?? string.Empty;
 
                 if (string.IsNullOrEmpty(scrapedTeamName))
                 {
@@ -81,7 +81,7 @@ internal class TeamStandingScraper
 
                 teamStandings.Add(new TeamStanding
                 {
-                    Id = _index++,
+                    TeamStandingId = _index++,
                     Position = scrapedPosition,
                     Team = existingTeam,
                     Points = scrapedPoints,

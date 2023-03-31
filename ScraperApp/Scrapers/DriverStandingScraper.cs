@@ -43,9 +43,9 @@ internal class DriverStandingScraper
                 "//table[@class='resultsarchive-table']/tbody/tr"))
             {
                 scrapedFirstName = row.SelectSingleNode(
-                        "./td/a/span[@class='hide-for-tablet']").InnerText;
+                        "./td/a/span[@class='hide-for-tablet']").InnerText.Trim();
                 scrapedLastName = row.SelectSingleNode(
-                    "./td/a/span[@class='hide-for-mobile']").InnerText;
+                    "./td/a/span[@class='hide-for-mobile']").InnerText.Trim();
 
                 scrapedFullName = scrapedFirstName + " " + scrapedLastName;
 
@@ -59,7 +59,7 @@ internal class DriverStandingScraper
                 }
 
                 scrapedTeamName = row.SelectSingleNode(
-                    "./td/a[@class='grey semi-bold uppercase ArchiveLink']").InnerText;
+                    "./td/a[@class='grey semi-bold uppercase ArchiveLink']").InnerText.Trim();
 
                 Team existingTeam = teams.FirstOrDefault(t => t.Name == scrapedTeamName);
 
@@ -95,7 +95,7 @@ internal class DriverStandingScraper
 
                 driverStandings.Add(new DriverStanding()
                 {
-                    Id = _index++,
+                    DriverStandingId = _index++,
                     Position = scrapedPosition,
                     Driver = existingDriver,
                     Team = existingTeam,

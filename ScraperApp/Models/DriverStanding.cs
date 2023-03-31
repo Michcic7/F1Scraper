@@ -8,7 +8,7 @@ namespace ScraperApp.Models;
 
 internal class DriverStanding
 {
-    public int Id { get; set; }
+    public int DriverStandingId { get; set; }
     public int Position { get; set; }
     public Driver Driver { get; set; }
     public Team Team { get; set; }

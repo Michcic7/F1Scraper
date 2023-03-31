@@ -52,10 +52,12 @@ internal class Serializer
 
     internal void SerializeDrivers()
     {
+        List<string> links = GetLinks();
+        
         DriverScraper scraper = new();
 
         // drivers are scraped from driver standings, not race results - no argument
-        List<Driver> drivers = scraper.ScrapeDrivers();
+        List<Driver> drivers = scraper.ScrapeDrivers(links);
 
         string json = JsonConvert.SerializeObject(drivers, Formatting.Indented);
 
