@@ -1,12 +1,6 @@
 ﻿using HtmlAgilityPack;
-using Microsoft.VisualBasic;
 using ScraperApp.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ScraperApp.Scrapers;
 
@@ -20,19 +14,12 @@ internal class CircuitScraper
 
         HtmlWeb web = new();
         web.OverrideEncoding = Encoding.UTF8;
-        HtmlDocument document = new();
-
-        // loop variables
-        string scrapedFullName = string.Empty;
-        string[] scrapedParts = new string[2];
-        string scrapedName = string.Empty;
-        string scrapedCountry = string.Empty;
 
         foreach (var link in links)
         {
-            document = web.Load("https://www.formula1.com" + link);
+            HtmlDocument document = web.Load(link);
 
-            scrapedFullName = document.DocumentNode.SelectSingleNode(
+            string scrapedFullName = document.DocumentNode.SelectSingleNode(
                 "/html/body/div[1]/main/article/div/div[2]/div[2]/div[1]/p" +
                 "/span[@class='circuit-info']").InnerText;
 
@@ -43,23 +30,23 @@ internal class CircuitScraper
             }
 
             // if a circuit has already been scraped - move to the next loop iteration
-            if (circuits.Any(c => c.Name + ", " + c.Country == scrapedFullName))
+            if (circuits.Any(c => c.Name + ", " + c.Location == scrapedFullName))
             {
                 continue;
             }
 
-            // split the scraped name into country and cicruit name
-            scrapedParts = scrapedFullName.Split(',');
-            scrapedName = scrapedParts[0].Trim();
-            scrapedCountry = scrapedParts[1].Trim();
+            // split the scraped name into location and cicruit name
+            string[] scrapedParts = scrapedFullName.Split(',');
+            string scrapedName = scrapedParts[0].Trim();
+            string scrapedLocation = scrapedParts[1].Trim();
             
-            // add a circuit to the returned list of circuits
             circuits.Add(new Circuit
             {
                 CircuitId = _index++,
                 Name = scrapedName,
-                Country = scrapedCountry
+                Location = scrapedLocation
             });
+            Console.WriteLine($"Circuit: {scrapedFullName} added.");
         }
 
         return circuits;

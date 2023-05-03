@@ -1,63 +1,62 @@
 ﻿using HtmlAgilityPack;
 using ScraperApp.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ScraperApp.Scrapers;
 
 internal class DriverScraper
 {
     private int _index = 1;
+    private int _newDriverWithoutNationalityId = 500;
+    private readonly int _startYear = 1950;    
 
     internal List<Driver> ScrapeDrivers(List<string> links)
     {
         HtmlWeb web = new();
         web.OverrideEncoding = Encoding.UTF8;
-        HtmlDocument document = new();
 
         List<Driver> drivers = ScrapeDriversWithNationality();
-
-        string scrapedDriverFirstName = string.Empty;
-        string scrapedDriverLastName = string.Empty;
-        string scrapedDriverFullName = string.Empty;
-        int newDriverId = 500;
 
         List<Driver> driversWithoutNationality = new();
 
         foreach (var link in links)
         {
-            document = web.Load("https://www.formula1.com" + link);
+            HtmlDocument document = web.Load(link);
 
-            foreach (var row in document.DocumentNode.SelectNodes(
-                "//table[@class='resultsarchive-table']/tbody/tr"))
+            var rows = document.DocumentNode.SelectNodes(
+                "//table[@class='resultsarchive-table']/tbody/tr") ?? null;
+
+            // If there's no row node on the page - the race hasn't taken place yet.
+            if (rows == null)
             {
-                scrapedDriverFirstName = row.SelectSingleNode(
+                break;
+            }
+
+            foreach (var row in rows)
+            {
+                string scrapedFirstName = row.SelectSingleNode(
                         "./td/span[@class='hide-for-tablet']").InnerText.Trim();
-                scrapedDriverLastName = row.SelectSingleNode(
+
+                string scrapedLastName = row.SelectSingleNode(
                     "./td/span[@class='hide-for-mobile']").InnerText.Trim();
 
-                scrapedDriverFullName = scrapedDriverFirstName + " " + scrapedDriverLastName;
+                string scrapedFullName = scrapedFirstName + " " + scrapedLastName;
 
                 Driver existingDriver = drivers.FirstOrDefault(d =>
-                    d.FirstName + " " + d.LastName == scrapedDriverFullName);
+                    d.FirstName + " " + d.LastName == scrapedFullName);
 
+                // If there's no such driver scraped from standings - add them
                 if (existingDriver == null)
                 {
-                    Console.WriteLine($"Driver: {scrapedDriverFullName} doesn't exist");
-
                     driversWithoutNationality.Add(new Driver()
                     {
-                        DriverId = newDriverId++,
-                        FirstName = scrapedDriverFirstName,
-                        LastName = scrapedDriverLastName
+                        DriverId = _newDriverWithoutNationalityId++,
+                        FirstName = scrapedFirstName,
+                        LastName = scrapedLastName
                     });
 
                     drivers.Add(driversWithoutNationality.Last());
+                    Console.WriteLine($"Driver: {scrapedFirstName} {scrapedLastName} added.");
                 }
             }
         }
@@ -73,11 +72,7 @@ internal class DriverScraper
         web.OverrideEncoding = Encoding.UTF8;
         HtmlDocument document = new();
 
-        string scrapedFirstName = string.Empty;
-        string scrapedLastName = string.Empty;
-        string scrapedNationality = string.Empty;
-
-        for (int year = 1950; year < 2023; year++)
+        for (int year = _startYear; year <= DateTime.Now.Year; year++)
         {
             document = web.Load(
                 $"https://www.formula1.com/en/results.html/{year}/drivers.html");
@@ -85,26 +80,26 @@ internal class DriverScraper
             foreach (var row in document.DocumentNode.SelectNodes(
                 "//table[@class='resultsarchive-table']/tbody/tr"))
             {
-                scrapedFirstName = row.SelectSingleNode(
+                string scrapedFirstName = row.SelectSingleNode(
                     "./td/a/span[@class='hide-for-tablet']")?.InnerText.Trim() ?? string.Empty;
 
-                // if there's no first name on the page - a season hasn't started yet
+                // If there's no first name on the page - a season hasn't started yet.
                 if (string.IsNullOrEmpty(scrapedFirstName))
                 {
                     break;
                 }
 
-                scrapedLastName = row.SelectSingleNode(
+                string scrapedLastName = row.SelectSingleNode(
                     "./td/a/span[@class='hide-for-mobile']").InnerText.Trim();
 
-                // if a driver has already been scraped - move to the next loop iteration
+                // If a driver has already been scraped - move to the next loop iteration.
                 if (drivers.Any(d => d.FirstName == scrapedFirstName &&
                                      d.LastName == scrapedLastName))
                 {
                     continue;
                 }
 
-                scrapedNationality = row.SelectSingleNode(
+                string scrapedNationality = row.SelectSingleNode(
                     "./td[@class='dark semi-bold uppercase']").InnerText.Trim();
 
                 drivers.Add(new Driver
@@ -115,11 +110,10 @@ internal class DriverScraper
                     Nationality = scrapedNationality
 
                 });
+                Console.WriteLine($"Driver: {scrapedFirstName} {scrapedLastName} added.");
             }
         }
 
         return drivers;
-    }
-
-    
+    }    
 }

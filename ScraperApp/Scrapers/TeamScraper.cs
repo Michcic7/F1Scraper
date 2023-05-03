@@ -1,10 +1,6 @@
 ﻿using HtmlAgilityPack;
 using ScraperApp.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ScraperApp.Scrapers;
 
@@ -18,21 +14,25 @@ internal class TeamScraper
 
         HtmlWeb web = new();
         web.OverrideEncoding = Encoding.UTF8;
-        HtmlDocument document = new();
-
-        // a loop variable
-        string scrapedName;
 
         foreach (var link in links)
         {
-            document = web.Load("https://www.formula1.com" + link);
+            HtmlDocument document = web.Load(link);
 
-            foreach (var row in document.DocumentNode.SelectNodes(
-                "//table[@class='resultsarchive-table']/tbody/tr"))
+            var rows = document.DocumentNode.SelectNodes(
+                "//table[@class='resultsarchive-table']/tbody/tr") ?? null;
+
+            // If there's no row node on the page - the race hasn't taken place yet.
+            if (rows == null)
+            {
+                break;
+            }
+
+            foreach (var row in rows)
             {
                 // using null-conditional operator to check the node,
                 // then null coalescing operator to check the inner text of the node
-                scrapedName = row.SelectSingleNode(
+                string scrapedName = row.SelectSingleNode(
                     "./td[@class='semi-bold uppercase hide-for-tablet']")?.InnerText.Trim() ?? string.Empty;
 
                 // if there's no name on the page - a race from the link hasn't taken place yet
@@ -47,12 +47,13 @@ internal class TeamScraper
                     continue;
                 }
 
-                // add a team to the returned list of teams
                 teams.Add(new Team
                 {
                     TeamId = _index++,
                     Name = scrapedName
                 });
+
+                Console.WriteLine($"Team: {scrapedName} added.");
             }
         }
 

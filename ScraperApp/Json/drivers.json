@@ -2364,6 +2364,18 @@
     "Nationality": "NED"
   },
   {
+    "DriverId": 395,
+    "FirstName": "Oscar",
+    "LastName": "Piastri",
+    "Nationality": "AUS"
+  },
+  {
+    "DriverId": 396,
+    "FirstName": "Logan",
+    "LastName": "Sargeant",
+    "Nationality": "USA"
+  },
+  {
     "DriverId": 500,
     "FirstName": "Yves",
     "LastName": "Giraud-Cabantous",
