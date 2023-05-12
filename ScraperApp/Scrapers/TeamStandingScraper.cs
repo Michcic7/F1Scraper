@@ -1,6 +1,6 @@
 ﻿using HtmlAgilityPack;
-using ScraperApp.Json;
 using ScraperApp.Models;
+using ScraperApp.Serialization;
 using System.Globalization;
 using System.Text;
 
@@ -9,11 +9,10 @@ namespace ScraperApp.Scrapers;
 internal class TeamStandingScraper
 {
     private int _index = 1;
-    private readonly int _startYear = 1958;
 
     internal List<TeamStanding> ScrapeTeamStandings(int startYear, int endYear)
     {
-        List<Team> teams = JsonDeserializer.Deserialize<Team>("teams");
+        List<Team> teams = JsonDeserializer.DeserializeCollection<Team>("teams");
         
         HtmlWeb web = new();
         web.OverrideEncoding = Encoding.UTF8;
@@ -24,6 +23,8 @@ internal class TeamStandingScraper
         {
             HtmlDocument document = web.Load(
                 $"https://www.formula1.com/en/results.html/{year}/team.html");
+
+            Console.WriteLine($"Year: {year}");
 
             foreach (var row in document.DocumentNode.SelectNodes(
                 "//table[@class='resultsarchive-table']/tbody/tr"))
@@ -47,10 +48,7 @@ internal class TeamStandingScraper
                 string scrapedPositionString = row.SelectSingleNode(
                     "./td[@class='dark']").InnerText;
 
-                if (int.TryParse(scrapedPositionString, out int position))
-                {
-                }
-                else
+                if (!int.TryParse(scrapedPositionString, out int position))
                 {
                     position = 0;
                 }
@@ -58,10 +56,7 @@ internal class TeamStandingScraper
                 string scrapedPointsString = row.SelectSingleNode(
                     "./td[@class='dark bold']").InnerText;
 
-                if (float.TryParse(scrapedPointsString, CultureInfo.InvariantCulture, out float points))
-                {
-                }
-                else
+                if (!float.TryParse(scrapedPointsString, CultureInfo.InvariantCulture, out float points))
                 {
                     points = 0;
                 }
@@ -74,7 +69,7 @@ internal class TeamStandingScraper
                     Points = points,
                     Year = year
                 });
-                Console.WriteLine($"Year: {year} {scrapedTeamName} : {points}pts.");
+                Console.WriteLine($"\t{position}. {scrapedTeamName}, {points}pts.");
             }
         }    
         

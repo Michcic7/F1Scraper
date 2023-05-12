@@ -6,8 +6,8 @@ namespace ScraperApp.Serialization;
 
 internal class Serializer
 {
-    // Path to 'ScraperApp\Json'.
-    private readonly string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + @"\Json";
+    private readonly string _jsonFolder = Path.Combine(
+        DirectoryHelper.GetProjectFolderPath(), "Json");
 
     internal void SerializeLinks()
     {
@@ -17,49 +17,43 @@ internal class Serializer
 
         string json = JsonConvert.SerializeObject(links, Formatting.Indented);
 
-        string path = Path.Combine(basePath, "links.json");
+        string path = Path.Combine(_jsonFolder, "links.json");
         File.WriteAllText(path, json);
     }
 
     internal void SerializeCircuits()
     {
-        List<string> links = GetLinks();
-
         CircuitScraper scraper = new();
 
-        List<Circuit> circuits = scraper.ScrapeCircuits(links);
+        List<Circuit> circuits = scraper.ScrapeCircuits();
 
         string json = JsonConvert.SerializeObject(circuits, Formatting.Indented);
 
-        string path = Path.Combine(basePath, "circuits.json");
+        string path = Path.Combine(_jsonFolder, "circuits.json");
         File.WriteAllText(path, json);
     }
 
     internal void SerializeTeams()
     {
-        List<string> links = GetLinks();
-
         TeamScraper scraper = new();
 
-        List<Team> teams = scraper.ScrapeTeams(links);
+        List<Team> teams = scraper.ScrapeTeams();
 
         string json = JsonConvert.SerializeObject(teams, Formatting.Indented);
 
-        string path = Path.Combine(basePath, "teams.json");
+        string path = Path.Combine(_jsonFolder, "teams.json");
         File.WriteAllText(path, json);
     }
 
     internal void SerializeDrivers()
     {
-        List<string> links = GetLinks();
-
         DriverScraper scraper = new();
 
-        List<Driver> drivers = scraper.ScrapeDrivers(links);
+        List<Driver> drivers = scraper.ScrapeDrivers();
 
         string json = JsonConvert.SerializeObject(drivers, Formatting.Indented);
 
-        string path = Path.Combine(basePath, "drivers.json");
+        string path = Path.Combine(_jsonFolder, "drivers.json");
         File.WriteAllText(path, json);
     }
 
@@ -71,7 +65,7 @@ internal class Serializer
 
         string json = JsonConvert.SerializeObject(teamStandings, Formatting.Indented);
 
-        string path = Path.Combine(basePath, "teamStandings.json");
+        string path = Path.Combine(_jsonFolder, "teamStandings.json");
         File.WriteAllText(path, json);
     }
 
@@ -83,32 +77,19 @@ internal class Serializer
 
         string json = JsonConvert.SerializeObject(driverStandings, Formatting.Indented);
 
-        string path = Path.Combine(basePath, "driverStandings.json");
+        string path = Path.Combine(_jsonFolder, "driverStandings.json");
         File.WriteAllText(path, json);
     }
 
-    internal void SerializeRaceResults()
+    internal void SerializeRaceResults(int startYear, int endYear)
     {
-        List<string> links = GetLinks();
-
         RaceResultScraper scraper = new();
 
-        List<RaceResult> raceResults = scraper.ScrapeRaceResults(links);
+        List<RaceResult> raceResults = scraper.ScrapeRaceResults(startYear, endYear);
 
         string json = JsonConvert.SerializeObject(raceResults, Formatting.Indented);
 
-        string path = Path.Combine(basePath, "raceResults.json");
+        string path = Path.Combine(_jsonFolder, "raceResults.json");
         File.WriteAllText(path, json);
-    }
-
-    private List<string> GetLinks()
-    {
-        string path = Path.Combine(basePath, "links.json");
-
-        using (StreamReader reader = new(path))
-        {
-            string json = reader.ReadToEnd();
-            return JsonConvert.DeserializeObject<List<string>>(json);
-        }
     }
 }
