@@ -32,11 +32,11 @@ internal class CircuitScraper
                 break;
             }
 
-            // If a circuit has already been scraped - move to the next loop iteration.
-            if (circuits.Any(c => c.Name + ", " + c.Location == scrapedFullName))
-            {
-                continue;
-            }
+            //// If a circuit has already been scraped - move to the next loop iteration.
+            //if (circuits.Any(c => c.Name + ", " + c.Location == scrapedFullName))
+            //{
+            //    continue;
+            //}
 
             // Split the scraped name into location and cicruit name.
             string[] scrapedParts = scrapedFullName.Split(',');
@@ -46,11 +46,10 @@ internal class CircuitScraper
             // Add everything, even duplicates.
             circuits.Add(new Circuit
             {
-                CircuitId = _index++,
                 Name = scrapedName,
                 Location = scrapedLocation
             });
-            Console.WriteLine($"Circuit: {scrapedFullName} added.");
+            Console.WriteLine($"Circuit: {scrapedFullName} scraped.");
         }
 
         // Remove duplicates separately for fewer queries - increased performance.
@@ -59,6 +58,6 @@ internal class CircuitScraper
         // Add IDs.
         distinctCircuits.ForEach(c => c.CircuitId = _index++);
 
-        return circuits;
+        return distinctCircuits;
     }
 }
