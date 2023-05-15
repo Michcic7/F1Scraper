@@ -202,12 +202,34 @@ internal class SerializationHandler
         WriteLine("Scraping all data.");
         WriteLine("Note: Driver who didn't participate in Drivers' Championship " +
                   "don't have their nationality included.");
-        
+        WriteLine();
         WriteLine("Note: Some of the circuits had their location changed on " +
                   "the official Formula 1 website throughout years, so the same " +
                   "circuit might appear multiple times with a slight variation in " +
                   "name or location.");
-        
+        WriteLine();
+
+        bool isValidInput = false;
+        bool includeCodes = false;
+
+        do
+        {
+            WriteLine("Do you want to include nationality codes? (y/n)");
+
+            string input = ReadLine();
+            
+            if (input.ToLower() == "y")
+            {
+                includeCodes = true;
+                isValidInput = true;
+            }
+            else if (input.ToLower() == "n")
+            {
+                includeCodes = false;
+                isValidInput = true;
+            }
+        } while (!isValidInput);
+
         WriteLine("Press any key to start.");
 
         ReadKey();
@@ -219,6 +241,24 @@ internal class SerializationHandler
         _serializer.SerializeTeamStandings(_startYearTeams, DateTime.Now.Year);
         _serializer.SerializeRaceResults(_startYearDrivers, DateTime.Now.Year);
 
-        WriteLine("All data have been scraped and serialised");
+        if (includeCodes)
+        {
+            _serializer.SerializeNationalityCodes();
+        }
+
+        WriteLine("All data have been scraped and serialised.");
+    }
+
+    internal void HandleNationalityCodes()
+    {
+        WriteLine();
+        WriteLine("Scraping nationality codes");
+
+        WriteLine("Press any key to start.");
+
+        ReadKey();
+
+        _serializer.SerializeNationalityCodes();
+        WriteLine("Nationality codes have been scraped and serialised.");
     }
 }

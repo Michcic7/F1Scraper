@@ -92,4 +92,16 @@ internal class Serializer
         string path = Path.Combine(_jsonFolder, "raceResults.json");
         File.WriteAllText(path, json);
     }
+
+    internal void SerializeNationalityCodes()
+    {
+        NationalityCodeScraper scraper = new();
+
+        List<NationalityCode> codes = scraper.ScrapeNationalityCodes();
+
+        string json = JsonConvert.SerializeObject(codes, Formatting.Indented);
+
+        string path = Path.Combine(_jsonFolder, "nationalityCodes.json");
+        File.WriteAllText(path, json);
+    }
 }

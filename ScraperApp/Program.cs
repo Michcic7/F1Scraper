@@ -5,6 +5,7 @@ using static System.Console;
 SerializationHandler serializationHandler = new();
 int input;
 bool toQuit = false;
+int numberOfOptions = 8;
 
 do
 {
@@ -17,7 +18,8 @@ do
         WriteLine("4. Driver Standings");
         WriteLine("5. Team Standings");
         WriteLine("6. Race Results");
-        WriteLine("7. All Data");
+        WriteLine("7. Nationality Three-letter Codes");
+        WriteLine("8. All Data");
         WriteLine("Note: In order to have correct relationships between objects, " +
                   "use 1 - 3 options to scrape the corresponding data " +
                   "before proceeding to 4 - 6 options");
@@ -82,6 +84,13 @@ do
 
         case 7:
             stopwatch.Start();
+            serializationHandler.HandleNationalityCodes();
+            stopwatch.Stop();
+            PrintElapsedTime(stopwatch);
+            break;
+
+        case 8:
+            stopwatch.Start();
             serializationHandler.HandleAllData();
             stopwatch.Stop();
             PrintElapsedTime(stopwatch);
@@ -109,7 +118,7 @@ ReadKey();
 
 bool IsInputValid(int input)
 {
-    if (input > 0 && input <= 7)
+    if (input > 0 && input <= numberOfOptions)
     {
         return true;
     }
