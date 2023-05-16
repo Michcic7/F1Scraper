@@ -30,7 +30,7 @@ do
 
         if (!IsInputValid(input) || !isInputInt)
         {
-            WriteLine("Error: Enter an integer from 1 to 7.");
+            WriteLine($"Error: Enter an integer from 1 to {numberOfOptions}.");
             WriteLine();
         }
     }
