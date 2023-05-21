@@ -7,8 +7,8 @@ internal class SerializationHandler
 {
     private readonly Serializer _serializer = new();
 
-    private readonly int _startYearDrivers = 1950;
-    private readonly int _startYearTeams = 1958;
+    private int _startYearDrivers = 1950;
+    private int _startYearTeams = 1958;
 
     internal void HandleDrivers()
     {
