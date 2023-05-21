@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using static System.Console;
+﻿using static System.Console;
 
 namespace ScraperApp.Serialization;
 
@@ -7,8 +6,9 @@ internal class SerializationHandler
 {
     private readonly Serializer _serializer = new();
 
-    private int _startYearDrivers = 1950;
-    private int _startYearTeams = 1958;
+    private readonly int _startYearDrivers = 1950;
+    private readonly int _startYearTeams = 1958;
+    private readonly int _currentYear = DateTime.Now.Year;
 
     internal void HandleDrivers()
     {
@@ -91,7 +91,7 @@ internal class SerializationHandler
 
         bool IsYearValid(int input)
         {
-            if (input >= 1950 && input <= 2023)
+            if (input >= _startYearDrivers && input <= _currentYear)
             {
                 return true;
             }
@@ -139,7 +139,7 @@ internal class SerializationHandler
 
         bool IsYearValid(int input)
         {
-            if (input >= 1958 && input <= 2023)
+            if (input >= _startYearTeams && input <= _currentYear)
             {
                 return true;
             }
@@ -187,7 +187,7 @@ internal class SerializationHandler
 
         bool IsYearValid(int input)
         {
-            if (input >= 1950 && input <= 2023)
+            if (input >= _startYearDrivers && input <= _currentYear)
             {
                 return true;
             }
@@ -216,7 +216,7 @@ internal class SerializationHandler
         {
             WriteLine("Do you want to include nationality codes? (y/n)");
 
-            string input = ReadLine();
+            string input = ReadLine()!;
             
             if (input.ToLower() == "y")
             {
