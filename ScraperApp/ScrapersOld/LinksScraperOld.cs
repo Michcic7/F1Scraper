@@ -1,19 +1,20 @@
 ﻿using HtmlAgilityPack;
-using ScraperApp.Interfaces;
 using System.Text;
 
 namespace ScraperApp.Scrapers;
 
-internal class LinksScraper : ILinksScraper
+internal class LinksScraperOld
 {
-    public IEnumerable<string> ScrapeLinks()
+    private readonly int _startYear = 1950;
+
+    internal List<string> ScrapeLinks(int endYear)
     {
         HtmlWeb web = new();
         web.OverrideEncoding = Encoding.UTF8;
-
+        
         List<string> links = new();
 
-        for (int year = 1950; year <= DateTime.Now.Year; year++)
+        for (int year = _startYear; year <= endYear; year++)
         {
             HtmlDocument document = web.Load($"https://www.formula1.com/en/results.html/{year}/races.html");
 
@@ -39,7 +40,7 @@ internal class LinksScraper : ILinksScraper
                         Console.WriteLine(fullLink);
                     }
                 }
-            }
+            }            
         }
 
         return links;

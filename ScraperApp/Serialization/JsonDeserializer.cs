@@ -6,9 +6,9 @@ internal static class JsonDeserializer
 {
     internal static List<T> DeserializeCollection<T>(string fileName)
     {
-        string projectFolder = DirectoryHelper.GetProjectFolderPath();
+        string _jsonFolderPath = DirectoryHelper.GetJsonFolderPath();
 
-        string filePath = Path.Combine(projectFolder, "Json", $"{fileName}.json");
+        string filePath = Path.Combine(_jsonFolderPath, $"{fileName}.json");
 
         using (StreamReader reader = new(filePath))
         {

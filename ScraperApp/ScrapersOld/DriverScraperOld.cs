@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ScraperApp.Scrapers;
 
-internal class DriverScraper
+internal class DriverScraperOld
 {
     private int _index = 1;
     private readonly int _startYear = 1950;

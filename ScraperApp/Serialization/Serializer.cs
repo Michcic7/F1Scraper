@@ -11,7 +11,7 @@ internal class Serializer
 
     internal void SerializeLinks()
     {
-        LinksScraper scraper = new();
+        LinksScraperOld scraper = new();
 
         List<string> links = scraper.ScrapeLinks(DateTime.Now.Year);
 
@@ -47,7 +47,7 @@ internal class Serializer
 
     internal void SerializeDrivers()
     {
-        DriverScraper scraper = new();
+        DriverScraperOld scraper = new();
 
         List<Driver> drivers = scraper.ScrapeDrivers();
 

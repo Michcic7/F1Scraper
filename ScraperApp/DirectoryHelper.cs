@@ -15,4 +15,9 @@ internal static class DirectoryHelper
 
         return Directory.GetParent(baseDirectory).Parent.Parent.FullName;
     }
+
+    internal static string GetJsonFolderPath()
+    {
+        return Path.Combine(GetProjectFolderPath(), "Json");
+    }
 }
